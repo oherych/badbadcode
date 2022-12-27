@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func Create(tm *pkg.TaskManager) echo.HandlerFunc {
+func Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		t := pkg.Task{}
 		err := c.Bind(&t)
@@ -22,9 +22,12 @@ func Create(tm *pkg.TaskManager) echo.HandlerFunc {
 		}
 
 		tm.Lock()
-		tm.List = append(tm.List, t)
+		tm.List[t] = ""
 		tm.Unlock()
 
-		return nil
+		r := new(pkg.Result)
+		go tm.Go(t, r)
+
+		return c.JSON(200, r)
 	}
 }
